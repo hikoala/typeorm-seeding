@@ -1,5 +1,5 @@
 import * as Faker from 'faker'
-import { Connection, ObjectType, Repository } from 'typeorm'
+import { Connection, EntityManager, ObjectType, Repository } from 'typeorm'
 import { FactoryFunction, EntityProperty } from './types'
 import { isPromiseLike } from './utils/factory.util'
 import { printError, printWarning } from './utils/log.util'
@@ -41,9 +41,22 @@ export class EntityFactory<Entity, Context> {
     return this.makeEntity(overrideParams, false)
   }
 
-  private async getConnection() {
+  private async getConnection(): Promise<Connection> {
     const option = await getConnectionOptions()
     return createConnection(option)
+  }
+
+  private validateConnection(connection: Connection): Connection {
+    if (!connection || !connection.isConnected) {
+      const message = 'No db connection is given'
+      printError(message)
+      throw new Error(message)
+    }
+    return connection
+  }
+
+  private getEntityManager(connection: Connection): EntityManager {
+    return connection.createEntityManager()
   }
 
   /**
@@ -53,20 +66,15 @@ export class EntityFactory<Entity, Context> {
     overrideParams: EntityProperty<Entity> = {},
     opts: Partial<FactoryOptions<Entity>> = {},
   ): Promise<Entity> {
-    const connection = opts.connection ?? (await this.getConnection())
-    if (connection && connection.isConnected) {
-      const em = opts.repository ? opts.repository.manager : connection.createEntityManager()
-      try {
-        const entity = await this.makeEntity(overrideParams, true)
-        return await em.save<Entity>(entity)
-      } catch (error) {
-        const message = 'Could not save entity'
-        printError(message, error)
-        throw new Error(message)
-      }
-    } else {
-      const message = 'No db connection is given'
-      printError(message)
+    const em = opts.repository
+      ? opts.repository.manager
+      : this.getEntityManager(this.validateConnection(opts.connection ?? (await this.getConnection())))
+    try {
+      const entity = await this.makeEntity(overrideParams, true)
+      return await em.save<Entity>(entity)
+    } catch (error) {
+      const message = 'Could not save entity'
+      printError(message, error)
       throw new Error(message)
     }
   }
