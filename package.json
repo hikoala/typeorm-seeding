@@ -28,7 +28,7 @@
     "schema:log": "ts-node ./node_modules/typeorm/cli.js schema:log -c sample",
     "seed:run": "ts-node ./dist/cli.js seed -c sample",
     "seed:config": "ts-node ./dist/cli.js config -c sample",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "publish": "npm publish --access public"
   },
   "devDependencies": {
