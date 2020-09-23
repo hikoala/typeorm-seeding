@@ -1,9 +1,15 @@
 import * as Faker from 'faker'
-import { ObjectType } from 'typeorm'
+import { Connection, ObjectType, Repository } from 'typeorm'
 import { FactoryFunction, EntityProperty } from './types'
 import { isPromiseLike } from './utils/factory.util'
 import { printError, printWarning } from './utils/log.util'
 import { getConnectionOptions, createConnection } from './connection'
+
+interface FactoryOptions<Entity> {
+  connection: Connection
+
+  repository: Repository<Entity>
+}
 
 export class EntityFactory<Entity, Context> {
   private mapFunction: (entity: Entity) => Promise<Entity>
@@ -35,14 +41,21 @@ export class EntityFactory<Entity, Context> {
     return this.makeEntity(overrideParams, false)
   }
 
+  private async getConnection() {
+    const option = await getConnectionOptions()
+    return createConnection(option)
+  }
+
   /**
    * Create makes a new entity and does persist it
    */
-  public async create(overrideParams: EntityProperty<Entity> = {}): Promise<Entity> {
-    const option = await getConnectionOptions()
-    const connection = await createConnection(option)
+  public async create(
+    overrideParams: EntityProperty<Entity> = {},
+    opts: Partial<FactoryOptions<Entity>> = {},
+  ): Promise<Entity> {
+    const connection = opts.connection ?? (await this.getConnection())
     if (connection && connection.isConnected) {
-      const em = connection.createEntityManager()
+      const em = opts.repository ? opts.repository.manager : connection.createEntityManager()
       try {
         const entity = await this.makeEntity(overrideParams, true)
         return await em.save<Entity>(entity)
