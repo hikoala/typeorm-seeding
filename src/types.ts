@@ -4,7 +4,7 @@ import { Connection, ObjectType } from 'typeorm'
 import { EntityFactory } from './entity-factory'
 
 /**
- * FactoryFunction is the fucntion, which generate a new filled entity
+ * FactoryFunction is the function, which generate a new filled entity
  */
 export type FactoryFunction<Entity, Context> = (faker: typeof Faker, context?: Context) => Entity
 
