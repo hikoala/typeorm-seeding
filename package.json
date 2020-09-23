@@ -1,5 +1,5 @@
 {
-  "name": "typeorm-seeding",
+  "name": "@hikoala/typeorm-seeding",
   "version": "1.6.1",
   "description": "🌱 A delightful way to seed test data into your database.",
   "license": "MIT",
