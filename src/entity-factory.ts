@@ -87,10 +87,14 @@ export class EntityFactory<Entity, Context> {
     return list
   }
 
-  public async createMany(amount: number, overrideParams: EntityProperty<Entity> = {}): Promise<Entity[]> {
+  public async createMany(
+    amount: number,
+    overrideParams: EntityProperty<Entity> = {},
+    opts: Partial<FactoryOptions<Entity>> = {},
+  ): Promise<Entity[]> {
     const list = []
     for (let index = 0; index < amount; index++) {
-      list[index] = await this.create(overrideParams)
+      list[index] = await this.create(overrideParams, opts)
     }
     return list
   }
