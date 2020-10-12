@@ -110,3 +110,7 @@ export const createConnection = async (option?: TypeORMConnectionOptions): Promi
   }
   return connection
 }
+
+export const resetConnection = () => {
+  ;(global as any)[KEY].connection = undefined
+}
